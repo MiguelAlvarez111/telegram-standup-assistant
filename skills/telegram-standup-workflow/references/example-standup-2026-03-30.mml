@@ -1,0 +1,29 @@
+From: Miguel Alvarez <dando.zentido111@gmail.com>
+To: dando.zentido111@gmail.com
+Subject: Standup Diario – 30 de marzo de 2026
+
+<#multipart type=alternative>
+Resumen general del standup del equipo de Soporte.
+
+Participantes identificados: Angie, Brayan, Miguel.
+
+Resumen por participante:
+- Angie: Continuó con seguimiento al problema de Atlantic, atendiendo cerca de 20 correos y 6 llamadas. También revisó un ajuste de ticket restaurado desde un estado cancelado, donde el location no aparecía por la fecha de servicio anterior a un valor configurado en la división; al extender la fecha, el ticket volvió a mostrar location y número de guardia. Quedó pendiente seguimiento a un tema transaccional que no fue confirmado el viernes, probablemente por la misma caída de Atlantic.
+- Brayan: No se distingue con suficiente claridad en el audio qué reporte específico dio Brayan; aparece mencionado de forma confusa en relación con un ajuste/restauración de ticket. Conviene revisar el audio original si se necesita precisión total sobre su intervención.
+- Miguel: Tiene pendiente hacer seguimiento a terminaciones y fechas de inicio programadas en el deadline. También continuará con la revisión del segundo reporte enviado por Tulio sobre urgencias/urgents.
+
+Puntos clave:
+- El problema de Atlantic siguió absorbiendo buena parte de la operación.
+- Se identificó una causa técnica para un ticket sin location visible: fecha de servicio anterior a la configuración de división.
+- Quedó seguimiento pendiente a un tema transaccional no confirmado desde el viernes.
+- Miguel seguirá con revisiones operativas y de reportes hoy.
+
+Acciones pendientes:
+- Dar seguimiento al tema transaccional pendiente — Responsable: Angie.
+- Hacer seguimiento a terminaciones y fechas de inicio programadas — Responsable: Miguel.
+- Continuar revisión del segundo reporte enviado por Tulio — Responsable: Miguel.
+- Validar si hace falta aclarar el punto del ajuste/restauración del ticket mencionado en el standup — Responsable: Equipo / persona que llevó el caso.
+
+<#part type=text/html>
+<html><body><p>Ejemplo de referencia.</p></body></html>
+<#/multipart>
