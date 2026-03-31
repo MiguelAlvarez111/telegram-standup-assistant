@@ -275,6 +275,23 @@ def extract_key_points_and_actions_from_blocks(blocks):
     return key_points, actions
 
 
+def write_summary_artifact(output_prefix: str, payload: dict, summary: dict, warnings: list, normalizations: list):
+    artifact = {
+        'transcript_language': payload.get('language'),
+        'transcript_duration': payload.get('duration'),
+        'participants': summary.get('participants', []),
+        'general_summary': summary.get('general_summary'),
+        'participant_blocks': summary.get('participant_blocks', []),
+        'key_points': summary.get('key_points', []),
+        'actions': summary.get('actions', []),
+        'warnings': warnings,
+        'normalizations_applied': normalizations,
+    }
+    path = Path(f'{output_prefix}-summary.json')
+    path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding='utf-8')
+    return path
+
+
 def summarize_from_text(text, segments=None):
     detected = detect_participants(text)
     segment_blocks = speaker_blocks_from_segments(segments or []) if segments else []
@@ -343,7 +360,13 @@ def main():
     transcript_path.write_text(transcript)
     payload = json.loads(transcript)
 
+    warnings = []
+    normalizations = []
+    if len((payload.get('text') or '').strip()) < 80:
+        warnings.append('La transcripción es muy corta; el resumen puede ser incompleto.')
+
     summary = summarize_from_text(payload.get('text', ''), payload.get('segments', []))
+    summary_path = write_summary_artifact(args.output_prefix, payload, summary, warnings, normalizations)
 
     build_cmd = [
         'python3', str(base / 'scripts/build_standup_mml.py'),
@@ -378,9 +401,11 @@ def main():
 
     print(json.dumps({
         'transcript_path': str(transcript_path),
+        'summary_path': str(summary_path),
         'draft_path': str(draft_path),
         'participants': summary['participants'],
         'sent': bool(args.send),
+        'warnings': warnings,
     }, ensure_ascii=False, indent=2))
 
 
