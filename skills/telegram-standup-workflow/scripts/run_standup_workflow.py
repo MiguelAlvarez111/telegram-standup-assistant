@@ -54,32 +54,27 @@ def build_llm_client(api_key=None, base_url=None):
     )
 
 
-WHISPER_REPLACEMENTS = {
-    'ucp': 'USAP', 'icp': 'USAP', 'ycp': 'USAP',
-    'nassau': 'NASSAU', 'nasa': 'NASSAU',
-    'ercienlinks': 'RCMLinx', 'sien-links': 'RCMLinx',
-    'mdweb': 'MD Web', 'ndweb': 'MD Web',
-}
-
-
 def normalize_entities(text):
-    out = text
-    for wrong, correct in WHISPER_REPLACEMENTS.items():
-        out = re.sub(rf'\b{re.escape(wrong)}\b', correct, out, flags=re.IGNORECASE)
-    return out
+    replacements = {
+        'ucp': 'USAP', 'icp': 'USAP', 'ycp': 'USAP',
+        'nassau': 'NASSAU', 'nasa': 'NASSAU',
+        'ercienlinks': 'RCMLinx', 'sien-links': 'RCMLinx',
+        'mdweb': 'MD Web', 'ndweb': 'MD Web',
+    }
+    for old, new in replacements.items():
+        text = re.sub(rf'\b{re.escape(old)}\b', new, text, flags=re.IGNORECASE)
+    return text
 
 
 def summarize_from_text(text, *, client, model):
     prompt_path = BASE / 'references/standup-prompt.md'
     system_prompt = prompt_path.read_text(encoding='utf-8') + JSON_SCHEMA_INSTRUCTION
 
-    clean_text = normalize_entities(text)
-
     response = client.chat.completions.create(
         model=model,
         messages=[
             {'role': 'system', 'content': system_prompt},
-            {'role': 'user', 'content': clean_text},
+            {'role': 'user', 'content': text},
         ],
         temperature=0.3,
         response_format={'type': 'json_object'},
@@ -160,6 +155,7 @@ def main():
     raw_text = (payload.get('text') or '').strip()
     if len(raw_text) < 80:
         warnings.append('La transcripción es muy corta; el resumen puede ser incompleto.')
+    raw_text = normalize_entities(raw_text)
 
     client = build_llm_client(api_key=args.openai_api_key, base_url=args.openai_base_url)
     summary = summarize_from_text(raw_text, client=client, model=args.openai_model)
