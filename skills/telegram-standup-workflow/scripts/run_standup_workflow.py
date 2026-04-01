@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -53,41 +54,32 @@ def build_llm_client(api_key=None, base_url=None):
     )
 
 
-def load_domain_terms():
-    dict_path = BASE / 'references/domain-dictionary.json'
-    if not dict_path.exists():
-        return []
-    data = json.loads(dict_path.read_text(encoding='utf-8'))
-    terms = data.get('terms', [])
-    seen = []
-    for t in terms:
-        if t not in seen:
-            seen.append(t)
-    return seen
+WHISPER_REPLACEMENTS = {
+    'ucp': 'USAP', 'icp': 'USAP', 'ycp': 'USAP',
+    'nassau': 'NASSAU', 'nasa': 'NASSAU',
+    'ercienlinks': 'RCMLinx', 'sien-links': 'RCMLinx',
+    'mdweb': 'MD Web', 'ndweb': 'MD Web',
+}
+
+
+def normalize_entities(text):
+    out = text
+    for wrong, correct in WHISPER_REPLACEMENTS.items():
+        out = re.sub(rf'\b{re.escape(wrong)}\b', correct, out, flags=re.IGNORECASE)
+    return out
 
 
 def summarize_from_text(text, *, client, model):
     prompt_path = BASE / 'references/standup-prompt.md'
-    system_prompt = prompt_path.read_text(encoding='utf-8')
+    system_prompt = prompt_path.read_text(encoding='utf-8') + JSON_SCHEMA_INSTRUCTION
 
-    domain_terms = load_domain_terms()
-    if domain_terms:
-        terms_list = ', '.join(domain_terms)
-        system_prompt += (
-            '\n\n## Diccionario de dominio\n\n'
-            'El equipo utiliza los siguientes términos técnicos e internos. '
-            'Si la transcripción contiene errores ortográficos o fonéticos '
-            'similares a estos términos, debes usar la nomenclatura correcta '
-            f'en tu resumen: {terms_list}.'
-        )
-
-    system_prompt += JSON_SCHEMA_INSTRUCTION
+    clean_text = normalize_entities(text)
 
     response = client.chat.completions.create(
         model=model,
         messages=[
             {'role': 'system', 'content': system_prompt},
-            {'role': 'user', 'content': text},
+            {'role': 'user', 'content': clean_text},
         ],
         temperature=0.3,
         response_format={'type': 'json_object'},
