@@ -8,7 +8,7 @@ from pathlib import Path
 from openai import OpenAI
 
 
-BASE = Path('/data/.openclaw/workspace/skills/telegram-standup-workflow')
+BASE = Path(__file__).resolve().parent.parent
 
 JSON_SCHEMA_INSTRUCTION = """
 
@@ -129,7 +129,8 @@ def write_summary_artifact(output_prefix: str, payload: dict, summary: dict, war
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--audio', required=True)
+    parser.add_argument('--audio')
+    parser.add_argument('--transcript-json', help='Pre-transcribed JSON file (skips audio transcription)')
     parser.add_argument('--date', required=True)
     parser.add_argument('--output-prefix', required=True)
     parser.add_argument('--gmail-user')
@@ -140,19 +141,25 @@ def main():
     parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'phi3'))
     args = parser.parse_args()
 
+    if not args.audio and not args.transcript_json:
+        parser.error('either --audio or --transcript-json is required')
+
     transcript_path = Path(f'{args.output_prefix}-transcript.json')
     draft_path = Path(f'{args.output_prefix}.mml')
 
-    whisperx_python = BASE / '.venv311-diarization/bin/python'
-    whisperx_script = BASE / 'scripts/transcribe_with_whisperx.py'
-    if whisperx_python.exists() and whisperx_script.exists():
-        result = run([str(whisperx_python), str(whisperx_script), args.audio, 'es'], check=False)
-        if result.returncode == 0 and result.stdout.strip():
-            transcript = result.stdout
+    if args.transcript_json:
+        transcript = Path(args.transcript_json).read_text(encoding='utf-8')
+    else:
+        whisperx_python = BASE / '.venv311-diarization/bin/python'
+        whisperx_script = BASE / 'scripts/transcribe_with_whisperx.py'
+        if whisperx_python.exists() and whisperx_script.exists():
+            result = run([str(whisperx_python), str(whisperx_script), args.audio, 'es'], check=False)
+            if result.returncode == 0 and result.stdout.strip():
+                transcript = result.stdout
+            else:
+                transcript = run(['python3', str(BASE / 'scripts/transcribe_audio.py'), args.audio, 'es']).stdout
         else:
             transcript = run(['python3', str(BASE / 'scripts/transcribe_audio.py'), args.audio, 'es']).stdout
-    else:
-        transcript = run(['python3', str(BASE / 'scripts/transcribe_audio.py'), args.audio, 'es']).stdout
 
     transcript_path.write_text(transcript)
     payload = json.loads(transcript)
