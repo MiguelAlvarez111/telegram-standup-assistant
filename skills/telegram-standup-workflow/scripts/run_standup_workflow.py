@@ -48,14 +48,40 @@ def run(cmd, check=True):
 
 def build_llm_client(api_key=None, base_url=None):
     return OpenAI(
-        api_key=api_key or os.environ.get('OPENAI_API_KEY', 'not-set'),
-        base_url=base_url or os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        api_key=api_key or os.environ.get('OPENAI_API_KEY', 'ollama'),
+        base_url=base_url or os.environ.get('OPENAI_BASE_URL', 'http://localhost:11434/v1'),
     )
+
+
+def load_domain_terms():
+    dict_path = BASE / 'references/domain-dictionary.json'
+    if not dict_path.exists():
+        return []
+    data = json.loads(dict_path.read_text(encoding='utf-8'))
+    terms = data.get('terms', [])
+    seen = []
+    for t in terms:
+        if t not in seen:
+            seen.append(t)
+    return seen
 
 
 def summarize_from_text(text, *, client, model):
     prompt_path = BASE / 'references/standup-prompt.md'
-    system_prompt = prompt_path.read_text(encoding='utf-8') + JSON_SCHEMA_INSTRUCTION
+    system_prompt = prompt_path.read_text(encoding='utf-8')
+
+    domain_terms = load_domain_terms()
+    if domain_terms:
+        terms_list = ', '.join(domain_terms)
+        system_prompt += (
+            '\n\n## Diccionario de dominio\n\n'
+            'El equipo utiliza los siguientes términos técnicos e internos. '
+            'Si la transcripción contiene errores ortográficos o fonéticos '
+            'similares a estos términos, debes usar la nomenclatura correcta '
+            f'en tu resumen: {terms_list}.'
+        )
+
+    system_prompt += JSON_SCHEMA_INSTRUCTION
 
     response = client.chat.completions.create(
         model=model,
@@ -111,7 +137,7 @@ def main():
     parser.add_argument('--send', action='store_true')
     parser.add_argument('--openai-api-key', default=os.environ.get('OPENAI_API_KEY'))
     parser.add_argument('--openai-base-url', default=os.environ.get('OPENAI_BASE_URL'))
-    parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'gpt-4o'))
+    parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'phi3'))
     args = parser.parse_args()
 
     transcript_path = Path(f'{args.output_prefix}-transcript.json')
