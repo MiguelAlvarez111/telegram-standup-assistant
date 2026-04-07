@@ -56,7 +56,7 @@ def run(cmd, check=True):
     return subprocess.run(cmd, check=check, text=True, capture_output=True)
 
 
-GEMINI_API_KEY = 'AIzaSyAmVs8Sfeqd3bSFKKl-DrrKMRx2rP6nqGA'
+GEMINI_API_KEY = 'AIzaSyAm7aRK8qEqNUnKPI2KzhDtnDuaoLIL108'
 GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
 GMAIL_USER = 'dando.zentido111@gmail.com'
@@ -185,7 +185,10 @@ def write_summary_artifact(output_prefix: str, payload: dict, summary: dict, war
 _DEBUG_LOG = '/data/.openclaw/workspace/.cursor/debug-a05109.log'
 def _dbg(loc, msg, data=None):
     # #region agent log
-    import time; open(_DEBUG_LOG, 'a').write(json.dumps({"sessionId":"a05109","location":loc,"message":msg,"data":data or {},"timestamp":int(time.time()*1000)}) + '\n')
+    try:
+        import time; open(_DEBUG_LOG, 'a').write(json.dumps({"sessionId":"a05109","location":loc,"message":msg,"data":data or {},"timestamp":int(time.time()*1000)}) + '\n')
+    except Exception:
+        pass
     # #endregion
 
 

@@ -1,6 +1,6 @@
 {
   "terms": [
-    "USAP", "RCMLinx", "MD Web", "MDClaim+", "Medaxion", "NASSAU", "Providers",
+    "USAP", "RCMLinx", "MD Web", "MD Cloud", "MDClaim+", "Medaxion", "NASSAU", "Providers", "Transactional Log",
 
     "Brayan", "Angie", "Jose", "Astrid", "Miguel",
     "Joanna", "Annie", "Chad", "Drew", "Samantha", "Connolly",
@@ -46,6 +46,11 @@
     "mid cities": "MidCities", "midcities": "MidCities",
     "biltway": "BILTWAY", "beltway": "BILTWAY",
     "grover place": "Grover Place Surgery Center",
-    "veritas": "Veritas Anesthesia"
+    "veritas": "Veritas Anesthesia",
+    "chap": "Chad",
+    "university linx cps": "RCMLinx", "university links": "RCMLinx", "100 links": "RCMLinx", "100links": "RCMLinx",
+    "andy claude": "MD Cloud", "andy cloud": "MD Cloud",
+    "transactional london": "Transactional Log", "transactional londan": "Transactional Log",
+    "uci": "USAP"
   }
 }
