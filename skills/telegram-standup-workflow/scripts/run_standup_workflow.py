@@ -19,25 +19,33 @@ Responde ÚNICAMENTE con un objeto JSON válido (sin texto adicional, sin bloque
 Estructura exacta requerida:
 
 {
-  "participants": ["Nombre1", "Nombre2"],
-  "general_summary": "Resumen general breve de la reunión",
+  "general_summary": "Resumen ejecutivo de la reunión (1-2 párrafos).",
+  "participants": ["Nombre 1", "Nombre 2"],
   "participant_blocks": [
-    ["Nombre1", ["punto clave 1", "punto clave 2"]],
-    ["Nombre2", ["punto clave 1", "punto clave 2"]]
+    {
+      "name": "Nombre 1",
+      "achievements": ["Qué hizo"],
+      "blockers": ["Qué lo detiene"],
+      "plans": ["Qué hará hoy"]
+    }
   ],
-  "key_points": ["punto clave global 1", "punto clave global 2"],
+  "key_points": ["Decisión o anuncio importante a nivel general"],
   "actions": [
-    ["Descripción de la tarea", "Responsable"],
-    ["Otra tarea", "Otro responsable"]
-  ]
+    {
+      "task": "Descripción clara de la tarea",
+      "owner": "Nombre del responsable (o 'Sin asignar')"
+    }
+  ],
+  "confidence_warnings": ["Nota si el audio estaba confuso o faltan nombres"]
 }
 
 Reglas estrictas:
+- general_summary: string con 1-2 párrafos de resumen ejecutivo.
 - participants: lista de strings con los nombres detectados.
-- general_summary: string con un párrafo de resumen general.
-- participant_blocks: lista de arrays de 2 elementos [nombre, [bullets]]. Cada nombre es un string y cada bullets es una lista de strings (2-3 puntos por participante).
+- participant_blocks: lista de objetos. Cada objeto tiene "name" (string), "achievements" (lista de strings), "blockers" (lista de strings) y "plans" (lista de strings). Incluir 1-3 items por categoría.
 - key_points: lista de strings con las decisiones, anuncios o hitos más relevantes.
-- actions: lista de arrays de 2 elementos [tarea, responsable]. Cada elemento es un string.
+- actions: lista de objetos con "task" (string) y "owner" (string). Si no hay responsable claro, usar "Sin asignar".
+- confidence_warnings: lista de strings. Si el audio es claro y todos los participantes fueron identificados, devolver lista vacía [].
 - Si no puedes identificar con confianza el nombre de un participante, usa "Participante 1", "Participante 2", etc.
 - Si no hay acciones claras, incluye al menos una acción genérica de seguimiento.
 """
@@ -49,52 +57,88 @@ def run(cmd, check=True):
 
 def build_llm_client(api_key=None, base_url=None):
     return OpenAI(
-        api_key=api_key or os.environ.get('OPENAI_API_KEY', 'ollama'),
-        base_url=base_url or os.environ.get('OPENAI_BASE_URL', 'http://localhost:11434/v1'),
+        api_key=api_key or os.environ.get('OPENAI_API_KEY'),
+        base_url=base_url or os.environ.get('OPENAI_API_BASE') or None,
     )
 
 
+def load_whisper_corrections():
+    path = BASE / 'references/domain-dictionary.json'
+    data = json.loads(path.read_text(encoding='utf-8'))
+    return data.get('whisper_corrections', {})
+
+
 def normalize_entities(text):
-    replacements = {
-        'ucp': 'USAP', 'icp': 'USAP', 'ycp': 'USAP',
-        'nassau': 'NASSAU', 'nasa': 'NASSAU',
-        'ercienlinks': 'RCMLinx', 'sien-links': 'RCMLinx',
-        'mdweb': 'MD Web', 'ndweb': 'MD Web',
-    }
-    for old, new in replacements.items():
+    for old, new in load_whisper_corrections().items():
         text = re.sub(rf'\b{re.escape(old)}\b', new, text, flags=re.IGNORECASE)
     return text
+
+
+def _fallback_summary(error_msg):
+    return {
+        'participants': ['Equipo'],
+        'general_summary': f'[Error LLM] {error_msg}',
+        'participant_blocks': [],
+        'key_points': [],
+        'actions': [],
+        'confidence_warnings': [f'LLM call failed: {error_msg}'],
+    }
+
+
+def _bridge_participant_blocks(raw_blocks):
+    """Convert structured participant objects to backward-compatible tuples."""
+    result = []
+    for block in raw_blocks:
+        if not isinstance(block, dict):
+            continue
+        name = block.get('name', 'Participante')
+        bullets = []
+        for item in block.get('achievements', []):
+            if item:
+                bullets.append(item)
+        for item in block.get('blockers', []):
+            if item:
+                bullets.append(f'[Blocker] {item}')
+        for item in block.get('plans', []):
+            if item:
+                bullets.append(f'[Plan] {item}')
+        if bullets:
+            result.append((name, bullets))
+    return result
 
 
 def summarize_from_text(text, *, client, model):
     prompt_path = BASE / 'references/standup-prompt.md'
     system_prompt = prompt_path.read_text(encoding='utf-8') + JSON_SCHEMA_INSTRUCTION
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {'role': 'system', 'content': system_prompt},
-            {'role': 'user', 'content': text},
-        ],
-        temperature=0.3,
-        response_format={'type': 'json_object'},
-    )
-
-    raw = response.choices[0].message.content
-    data = json.loads(raw)
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': text},
+            ],
+            temperature=0.3,
+            response_format={'type': 'json_object'},
+        )
+        raw = response.choices[0].message.content
+        data = json.loads(raw)
+    except Exception as exc:
+        return _fallback_summary(str(exc))
 
     return {
         'participants': data.get('participants') or ['Equipo'],
         'general_summary': data.get('general_summary', ''),
-        'participant_blocks': [
-            (block[0], block[1]) for block in data.get('participant_blocks', [])
-            if isinstance(block, list) and len(block) == 2
-        ],
+        'participant_blocks': _bridge_participant_blocks(
+            data.get('participant_blocks', []),
+        ),
         'key_points': data.get('key_points') or [],
         'actions': [
-            (a[0], a[1]) for a in data.get('actions', [])
-            if isinstance(a, list) and len(a) == 2
+            (a.get('task', ''), a.get('owner', 'Sin asignar'))
+            for a in data.get('actions', [])
+            if isinstance(a, dict) and a.get('task')
         ],
+        'confidence_warnings': data.get('confidence_warnings') or [],
     }
 
 
@@ -107,6 +151,7 @@ def write_summary_artifact(output_prefix: str, payload: dict, summary: dict, war
         'participant_blocks': summary.get('participant_blocks', []),
         'key_points': summary.get('key_points', []),
         'actions': summary.get('actions', []),
+        'confidence_warnings': summary.get('confidence_warnings', []),
         'warnings': warnings,
     }
     path = Path(f'{output_prefix}-summary.json')
@@ -125,7 +170,7 @@ def main():
     parser.add_argument('--send', action='store_true')
     parser.add_argument('--openai-api-key', default=os.environ.get('OPENAI_API_KEY'))
     parser.add_argument('--openai-base-url', default=os.environ.get('OPENAI_BASE_URL'))
-    parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'phi3'))
+    parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'gpt-4o'))
     args = parser.parse_args()
 
     if not args.audio and not args.transcript_json:
