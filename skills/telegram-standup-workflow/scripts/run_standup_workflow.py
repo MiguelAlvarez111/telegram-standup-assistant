@@ -10,6 +10,7 @@ from openai import OpenAI
 
 
 BASE = Path(__file__).resolve().parent.parent
+VENV_PYTHON = str(BASE / '.venv311-diarization/bin/python3')
 
 JSON_SCHEMA_INSTRUCTION = """
 
@@ -182,16 +183,15 @@ def main():
     if args.transcript_json:
         transcript = Path(args.transcript_json).read_text(encoding='utf-8')
     else:
-        whisperx_python = BASE / '.venv311-diarization/bin/python'
         whisperx_script = BASE / 'scripts/transcribe_with_whisperx.py'
-        if whisperx_python.exists() and whisperx_script.exists():
-            result = run([str(whisperx_python), str(whisperx_script), args.audio, 'es'], check=False)
+        if Path(VENV_PYTHON).exists() and whisperx_script.exists():
+            result = run([VENV_PYTHON, str(whisperx_script), args.audio, 'es'], check=False)
             if result.returncode == 0 and result.stdout.strip():
                 transcript = result.stdout
             else:
-                transcript = run(['python3', str(BASE / 'scripts/transcribe_audio.py'), args.audio, 'es']).stdout
+                transcript = run([VENV_PYTHON, str(BASE / 'scripts/transcribe_audio.py'), args.audio, 'es']).stdout
         else:
-            transcript = run(['python3', str(BASE / 'scripts/transcribe_audio.py'), args.audio, 'es']).stdout
+            transcript = run([VENV_PYTHON, str(BASE / 'scripts/transcribe_audio.py'), args.audio, 'es']).stdout
 
     transcript_path.write_text(transcript)
     payload = json.loads(transcript)
