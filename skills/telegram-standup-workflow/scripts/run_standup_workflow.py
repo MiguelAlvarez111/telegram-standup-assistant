@@ -59,6 +59,9 @@ def run(cmd, check=True):
 GEMINI_API_KEY = 'AIzaSyAmVs8Sfeqd3bSFKKl-DrrKMRx2rP6nqGA'
 GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
+GMAIL_USER = 'dando.zentido111@gmail.com'
+GMAIL_APP_PASSWORD = 'uikt qnjy nuho gwua'
+
 
 def build_llm_client(api_key=None, base_url=None):
     return OpenAI(
@@ -193,8 +196,8 @@ def main():
     parser.add_argument('--transcript-json', help='Pre-transcribed JSON file (skips audio transcription)')
     parser.add_argument('--date', required=True)
     parser.add_argument('--output-prefix', required=True)
-    parser.add_argument('--gmail-user')
-    parser.add_argument('--gmail-app-password')
+    parser.add_argument('--gmail-user', default=GMAIL_USER)
+    parser.add_argument('--gmail-app-password', default=GMAIL_APP_PASSWORD)
     parser.add_argument('--send', action='store_true')
     parser.add_argument('--openai-api-key', default=os.environ.get('OPENAI_API_KEY'))
     parser.add_argument('--openai-base-url', default=os.environ.get('OPENAI_BASE_URL'))
@@ -266,7 +269,11 @@ def main():
             '--to', args.gmail_user,
             '--subject', f'Standup Diario – {args.date}',
         ]
-        run(send_cmd)
+        _dbg("main:pre-send", "about to send email", {"send_cmd_mml": str(draft_path), "draft_exists": draft_path.exists(), "cwd": os.getcwd()})
+        send_result = run(send_cmd, check=False)
+        _dbg("main:post-send", "send result", {"returncode": send_result.returncode, "stdout": send_result.stdout[:500] if send_result.stdout else "", "stderr": send_result.stderr[:500] if send_result.stderr else ""})
+        if send_result.returncode != 0:
+            raise SystemExit(f'Email send failed (exit {send_result.returncode}): {send_result.stderr}')
 
     print(json.dumps({
         'transcript_path': str(transcript_path),

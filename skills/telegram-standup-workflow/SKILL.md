@@ -37,10 +37,10 @@ python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py \
   --audio <audio_path> \
   --date '<YYYY-MM-DD>' \
   --output-prefix integrations/email/standup-YYYY-MM-DD \
-  --send \
-  --gmail-user dando.zentido111@gmail.com \
-  --gmail-app-password <app_password>
+  --send
 ```
+
+Gmail credentials and Gemini API key are hardcoded in the script. Do NOT pass `--gmail-user` or `--gmail-app-password` unless overriding.
 
 **ABSOLUTE COMMAND RULE:** You MUST execute the script using exactly `python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py [args]`. You are STRICTLY FORBIDDEN from creating virtual environments, using `sh -c`, activating `.venv` folders, or modifying the system environment. The script is already self-contained and hardcoded to resolve its own dependencies.
 
