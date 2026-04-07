@@ -1,6 +1,6 @@
 ---
 name: telegram-standup-workflow
-description: Process work standup audio sent through Telegram into a structured Spanish summary and email draft. Use when Miguel sends an audio and says `standup`, asks to process a standup, or wants a summary email from a team standup recording. This skill should trigger for Telegram standup workflows involving transcription, domain dictionary cleanup, participant summaries, key points, action items, and HTML/MML email output.
+description: Process work standup audio sent through Telegram into a structured Spanish summary and email draft, then auto-send the email. Use when Miguel sends an audio and says `standup`, asks to process a standup, or wants a summary email from a team standup recording. This is a zero-touch pipeline -- no confirmation needed.
 ---
 
 # Telegram Standup Workflow
@@ -9,23 +9,54 @@ Use this skill when Miguel sends a work audio with the trigger `standup` or asks
 
 ## Core rule
 
-If Miguel sends audio and says `standup`, do **not** explain what a standup is. Assume he wants the workflow executed.
+If Miguel sends audio and says `standup`, do **not** explain what a standup is. Do **not** show a summary in chat. Do **not** ask what to do next. Just execute the full pipeline and send the email.
 
-## Workflow
+## Zero-Touch Workflow
 
-1. Transcribe the audio in Spanish using `scripts/transcribe_audio.py` or the project transcriber.
-2. Read `references/domain-dictionary.json` and preserve/correct internal names, systems, and terms when the transcript is noisy.
-3. Produce a structured standup summary in Spanish with:
-   - resumen general
-   - participantes identificados
-   - resumen por participante
-   - puntos clave
-   - acciones pendientes con responsable cuando se pueda inferir
-4. Be honest about ambiguity. If audio is unclear, mark uncertain details instead of inventing.
-5. Prefer the project email format with HTML sections and an actions table. Use `references/standup-email-template.mml` as the canonical structure.
-6. Save generated drafts under `integrations/email/standup-YYYY-MM-DD.mml` unless the user asks otherwise.
-7. If asked to send the email, verify the mailer path/config actually works before claiming it was sent.
-8. If Himalaya fails on Gmail with `cannot add IMAP message` / `Folder doesn't exist` while appending to Sent, use `scripts/send_via_gmail_smtp.py` as the delivery workaround and keep the generated `.mml` draft.
+This is a fully automated pipeline. Every step runs without user interaction.
+
+1. Run `scripts/run_standup_workflow.py` with `--send` to transcribe, summarize, build the email, and send it in one shot.
+2. The script handles everything: WhisperX transcription, entity normalization, LLM summarization, MML email building, and SMTP delivery.
+3. If the script exits with code 0, the email was sent. Reply with the success confirmation (see Telegram Response below).
+4. If the script exits with a non-zero code, reply with the **exact raw stderr traceback**. Nothing else.
+
+## CRITICAL EXECUTION RULE (NO BACKGROUND PROMISES)
+
+- You MUST execute `run_standup_workflow.py` **synchronously**.
+- DO NOT simulate or promise background execution.
+- DO NOT send filler messages like "I am processing it, I will let you know when it is done."
+- You must wait for the script to finish and reply in the **exact same turn**.
+- Never promise future deliveries. Only output actual results.
+
+## Preferred execution path
+
+```bash
+python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py \
+  --audio <audio_path> \
+  --date '<YYYY-MM-DD>' \
+  --output-prefix integrations/email/standup-YYYY-MM-DD \
+  --send \
+  --gmail-user dando.zentido111@gmail.com \
+  --gmail-app-password <app_password>
+```
+
+**ABSOLUTE COMMAND RULE:** You MUST execute the script using exactly `python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py [args]`. You are STRICTLY FORBIDDEN from creating virtual environments, using `sh -c`, activating `.venv` folders, or modifying the system environment. The script is already self-contained and hardcoded to resolve its own dependencies.
+
+**ALWAYS pass `--send`**. The email must be sent automatically. Do not ask Miguel for permission to send. Do not show the summary in chat first. Do not offer options.
+
+## Telegram Response
+
+### On success (exit code 0):
+
+Reply with ONLY this message, replacing the date:
+
+> ✅ Standup del [YYYY-MM-DD] procesado exitosamente. El reporte ha sido enviado por correo electrónico.
+
+Nothing else. No summary. No options. No "would you like to...".
+
+### On failure (non-zero exit code):
+
+Reply with the raw stderr output so Miguel can debug. No apologies, no suggestions, no "would you like me to try again". Just the error.
 
 ## Output rules
 
@@ -35,47 +66,17 @@ If Miguel sends audio and says `standup`, do **not** explain what a standup is. 
 - Focus participant summaries on logros, bloqueos y planes del día.
 - Extract puntos clave as decisions, announcements, and milestones.
 - Keep action items explicit, assigned, and easy to scan.
-- Use headers, bullets, bold labels, and an HTML actions table in the email draft.
-- If the transcript is long/noisy, prioritize clarity over literalness.
-- If speaker names are confidently detected, use real names.
-- If speaker names are not confidently detected, fall back to `Participante 1`, `Participante 2`, `Participante 3` rather than collapsing to `Equipo`.
+- If speaker names are not confidently detected, fall back to `Participante 1`, `Participante 2`, etc.
 - Use `references/standup-prompt.md` as the canonical quality bar for final standup summaries.
 
 ## Resources
 
 - Template: `references/standup-email-template.mml`
 - Dictionary: `references/domain-dictionary.json`
-- Example output: `references/example-standup-2026-03-30.mml`
 - Trigger notes: `references/trigger-behavior.md`
 - Diarization notes: `references/diarization-notes.md`
 - MML builder: `scripts/build_standup_mml.py`
-- SMTP workaround sender: `scripts/send_via_gmail_smtp.py`
+- SMTP sender: `scripts/send_via_gmail_smtp.py`
 - Basic transcription: `scripts/transcribe_audio.py`
 - Advanced transcription: `scripts/transcribe_with_whisperx.py`
 - End-to-end runner: `scripts/run_standup_workflow.py`
-
-## CRITICAL EXECUTION RULE (NO BACKGROUND PROMISES)
-
-- You MUST execute `run_standup_workflow.py` **synchronously**.
-- DO NOT simulate or promise background execution.
-- DO NOT send filler messages like "I am processing it, I will let you know when it is done."
-- You must wait for the script to finish and reply in the **exact same turn** with either the final summary, or the exact raw stderr traceback if the script fails.
-- Never promise future deliveries. Only output actual results.
-
-## Preferred execution path
-
-When the request is a direct standup trigger, prefer the end-to-end runner so the workflow produces stable artifacts:
-
-```bash
-python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py \
-  --audio <audio_path> \
-  --date '<fecha>' \
-  --output-prefix integrations/email/standup-YYYY-MM-DD \
-  [--send --gmail-user <gmail> --gmail-app-password <app_password>]
-```
-
-**ABSOLUTE COMMAND RULE:** You MUST execute the script using exactly `python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py [args]`. You are STRICTLY FORBIDDEN from creating virtual environments, using `sh -c`, activating `.venv` folders, or modifying the system environment. The script is already self-contained and hardcoded to resolve its own dependencies.
-
-## Delivery note
-
-If email sending fails, say exactly what failed (for example IMAP Sent/Drafts folder handling) and keep the generated `.mml` draft available.

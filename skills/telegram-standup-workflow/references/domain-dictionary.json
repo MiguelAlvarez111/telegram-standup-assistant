@@ -1,12 +1,14 @@
 {
   "terms": [
-    "USAP", "RCMLinx", "MD Web", "MDClaim+", "NASSAU", "Providers",
+    "USAP", "RCMLinx", "MD Web", "MDClaim+", "Medaxion", "NASSAU", "Providers",
     "Brayan", "Angie", "Jose", "Astrid", "Miguel"
   ],
   "whisper_corrections": {
     "ucp": "USAP", "icp": "USAP", "ycp": "USAP",
     "nassau": "NASSAU", "nasa": "NASSAU",
     "ercienlinks": "RCMLinx", "sien-links": "RCMLinx",
-    "mdweb": "MD Web", "ndweb": "MD Web"
+    "mdweb": "MD Web", "ndweb": "MD Web",
+    "endicweb": "MD Web", "endic web": "MD Web", "endig web": "MD Web",
+    "medaction": "Medaxion", "med action": "Medaxion", "medaccion": "Medaxion"
   }
 }

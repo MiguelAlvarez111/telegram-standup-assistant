@@ -67,10 +67,13 @@ def build_llm_client(api_key=None, base_url=None):
     )
 
 
-def load_whisper_corrections():
+def _load_domain_dictionary():
     path = BASE / 'references/domain-dictionary.json'
-    data = json.loads(path.read_text(encoding='utf-8'))
-    return data.get('whisper_corrections', {})
+    return json.loads(path.read_text(encoding='utf-8'))
+
+
+def load_whisper_corrections():
+    return _load_domain_dictionary().get('whisper_corrections', {})
 
 
 def normalize_entities(text):
@@ -114,7 +117,19 @@ def _bridge_participant_blocks(raw_blocks):
 
 def summarize_from_text(text, *, client, model):
     prompt_path = BASE / 'references/standup-prompt.md'
-    system_prompt = prompt_path.read_text(encoding='utf-8') + JSON_SCHEMA_INSTRUCTION
+    base_prompt = prompt_path.read_text(encoding='utf-8')
+
+    domain = _load_domain_dictionary()
+    terms = domain.get('terms', [])
+    domain_instruction = (
+        '\n\n## Terminología del equipo\n\n'
+        'El equipo utiliza los siguientes nombres propios, sistemas y términos técnicos. '
+        'Si la transcripción contiene errores ortográficos o fonéticos similares a estos términos, '
+        'usa la nomenclatura correcta en tu resumen:\n\n'
+        + ', '.join(terms) + '\n'
+    )
+
+    system_prompt = base_prompt + domain_instruction + JSON_SCHEMA_INSTRUCTION
 
     try:
         response = client.chat.completions.create(
