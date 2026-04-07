@@ -74,6 +74,8 @@ python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py \
   [--send --gmail-user <gmail> --gmail-app-password <app_password>]
 ```
 
+**ABSOLUTE COMMAND RULE:** You MUST execute the script using exactly `python3 skills/telegram-standup-workflow/scripts/run_standup_workflow.py [args]`. You are STRICTLY FORBIDDEN from creating virtual environments, using `sh -c`, activating `.venv` folders, or modifying the system environment. The script is already self-contained and hardcoded to resolve its own dependencies.
+
 ## Delivery note
 
 If email sending fails, say exactly what failed (for example IMAP Sent/Drafts folder handling) and keep the generated `.mml` draft available.
