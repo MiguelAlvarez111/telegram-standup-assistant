@@ -11,6 +11,8 @@ Use this skill when Miguel sends a work audio with the trigger `standup` or asks
 
 If Miguel sends audio and says `standup`, do **not** explain what a standup is. Do **not** show a summary in chat. Do **not** ask what to do next. Just execute the full pipeline and send the email.
 
+**DO NOT ANALYZE THE CODE.** Do not read `run_standup_workflow.py` to decide if it will work. Do not check for environment variables. Do not reason about whether API keys are configured. The script has hardcoded Gemini credentials and handles its own configuration. **JUST RUN IT.**
+
 ## Zero-Touch Workflow
 
 This is a fully automated pipeline. Every step runs without user interaction.

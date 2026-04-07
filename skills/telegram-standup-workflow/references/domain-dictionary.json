@@ -1,7 +1,36 @@
 {
   "terms": [
     "USAP", "RCMLinx", "MD Web", "MDClaim+", "Medaxion", "NASSAU", "Providers",
-    "Brayan", "Angie", "Jose", "Astrid", "Miguel"
+
+    "Brayan", "Angie", "Jose", "Astrid", "Miguel",
+    "Joanna", "Annie", "Chad", "Drew", "Samantha", "Connolly",
+    "Clodhys", "Dr Osorio", "Javier", "Mafer",
+
+    "AUSTIN", "Colorado", "DFW", "Florida", "FLORIDAPULSE", "Houston",
+    "INDIANA", "INDIANA-EAST", "KANSAS", "KENTUCKY", "MONTANA",
+    "Maryland", "NEVADA", "OHIO", "Seattle", "Star", "TENNESSEE", "USAPDC",
+
+    "AA FW", "AABC", "AACTX", "Aces", "AMGYN", "AMGTN", "AMH", "AMT",
+    "APEX", "ARCH", "Arlington", "aSC", "Austin",
+    "Baylor Irving Shared", "BILTWAY", "Billings", "BUMC", "BWMC",
+    "Celina", "CENTER ONE EXCEL",
+    "Delta Garland", "Spectrum", "Delta Irving", "Delta Las Colinas", "Denton",
+    "ETAA", "Excel",
+    "FARI", "FH MAIN", "Flower Mound", "FMR", "Forney", "FWD",
+    "Grapevine", "Grover Place Surgery Center", "GUARDIAN",
+    "HA MC", "HA Misc", "HA SC", "Holy Cross", "HOWARD",
+    "JLR EAST", "JLR NORTH", "JLR SOUTH", "JLR WEST", "JRSCC",
+    "MAADH", "MACIPract", "MCD Shared", "MCDSE",
+    "MO Web - Lubbock", "Metro AA", "Metro East", "Metro West",
+    "MHA MAIN", "MHA NORTH", "MHA SL", "MHA TCH",
+    "MidCities", "HEB", "Midlothian", "MSCH",
+    "NCH", "NMC", "North Hills", "North Texas General",
+    "NTA", "NTAC", "PALM BEACH", "Palm Coast", "PARADIGM", "Plaza", "Prestige",
+    "REGION_MEDICAL_CENTER", "REGION_NORTH/NORTHEAST", "REGION_NORTHWEST",
+    "REGION_SOUTH/EAST", "REGION_SOUTHWEST", "REGION_WEST",
+    "SCL", "SGH", "Sika", "SLA", "SUR", "SUB", "Summit", "Sundance",
+    "SWAN", "SWAS", "TAG", "TH FRISCO", "THA", "Trinity",
+    "UAK", "Veritas Anesthesia", "WH", "WDMC"
   ],
   "whisper_corrections": {
     "ucp": "USAP", "icp": "USAP", "ycp": "USAP",
@@ -9,6 +38,14 @@
     "ercienlinks": "RCMLinx", "sien-links": "RCMLinx",
     "mdweb": "MD Web", "ndweb": "MD Web",
     "endicweb": "MD Web", "endic web": "MD Web", "endig web": "MD Web",
-    "medaction": "Medaxion", "med action": "Medaxion", "medaccion": "Medaxion"
+    "medaction": "Medaxion", "med action": "Medaxion", "medaccion": "Medaxion",
+    "clodis": "Clodhys", "clodys": "Clodhys", "claudis": "Clodhys",
+    "osorio": "Dr Osorio",
+    "maffer": "Mafer",
+    "florida pulse": "FLORIDAPULSE",
+    "mid cities": "MidCities", "midcities": "MidCities",
+    "biltway": "BILTWAY", "beltway": "BILTWAY",
+    "grover place": "Grover Place Surgery Center",
+    "veritas": "Veritas Anesthesia"
   }
 }

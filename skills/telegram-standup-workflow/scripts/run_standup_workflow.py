@@ -179,7 +179,15 @@ def write_summary_artifact(output_prefix: str, payload: dict, summary: dict, war
     return path
 
 
+_DEBUG_LOG = '/data/.openclaw/workspace/.cursor/debug-a05109.log'
+def _dbg(loc, msg, data=None):
+    # #region agent log
+    import time; open(_DEBUG_LOG, 'a').write(json.dumps({"sessionId":"a05109","location":loc,"message":msg,"data":data or {},"timestamp":int(time.time()*1000)}) + '\n')
+    # #endregion
+
+
 def main():
+    _dbg("main:entry", "script invoked", {"BASE": str(BASE), "VENV_PYTHON": VENV_PYTHON, "GEMINI_API_KEY_set": bool(GEMINI_API_KEY), "GEMINI_BASE_URL": GEMINI_BASE_URL})
     parser = argparse.ArgumentParser()
     parser.add_argument('--audio')
     parser.add_argument('--transcript-json', help='Pre-transcribed JSON file (skips audio transcription)')
@@ -193,6 +201,7 @@ def main():
     parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'gemini-2.5-flash'))
     args = parser.parse_args()
 
+    _dbg("main:args", "parsed arguments", {"audio": args.audio, "transcript_json": args.transcript_json, "api_key_is_none": args.openai_api_key is None, "api_key_is_empty": args.openai_api_key == '', "base_url": args.openai_base_url, "model": args.openai_model})
     if not args.audio and not args.transcript_json:
         parser.error('either --audio or --transcript-json is required')
 
@@ -221,8 +230,11 @@ def main():
         warnings.append('La transcripción es muy corta; el resumen puede ser incompleto.')
     raw_text = normalize_entities(raw_text)
 
+    _dbg("main:pre-llm", "about to build LLM client", {"api_key_arg": "set" if args.openai_api_key else "None/empty", "base_url_arg": args.openai_base_url, "env_OPENAI_API_KEY": "set" if os.environ.get('OPENAI_API_KEY') else "unset", "env_OPENAI_API_BASE": os.environ.get('OPENAI_API_BASE', 'unset'), "resolved_key_preview": (args.openai_api_key or os.environ.get('OPENAI_API_KEY', GEMINI_API_KEY))[:10] + "...", "resolved_base": args.openai_base_url or os.environ.get('OPENAI_API_BASE', GEMINI_BASE_URL)})
     client = build_llm_client(api_key=args.openai_api_key, base_url=args.openai_base_url)
+    _dbg("main:post-llm-client", "LLM client built OK")
     summary = summarize_from_text(raw_text, client=client, model=args.openai_model)
+    _dbg("main:post-summarize", "summary complete", {"participants": summary.get('participants'), "has_general_summary": bool(summary.get('general_summary')), "confidence_warnings": summary.get('confidence_warnings')})
     summary_path = write_summary_artifact(args.output_prefix, payload, summary, warnings)
 
     build_cmd = [
