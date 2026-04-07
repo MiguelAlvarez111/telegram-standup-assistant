@@ -54,6 +54,14 @@ If Miguel sends audio and says `standup`, do **not** explain what a standup is. 
 - Advanced transcription: `scripts/transcribe_with_whisperx.py`
 - End-to-end runner: `scripts/run_standup_workflow.py`
 
+## CRITICAL EXECUTION RULE (NO BACKGROUND PROMISES)
+
+- You MUST execute `run_standup_workflow.py` **synchronously**.
+- DO NOT simulate or promise background execution.
+- DO NOT send filler messages like "I am processing it, I will let you know when it is done."
+- You must wait for the script to finish and reply in the **exact same turn** with either the final summary, or the exact raw stderr traceback if the script fails.
+- Never promise future deliveries. Only output actual results.
+
 ## Preferred execution path
 
 When the request is a direct standup trigger, prefer the end-to-end runner so the workflow produces stable artifacts:
