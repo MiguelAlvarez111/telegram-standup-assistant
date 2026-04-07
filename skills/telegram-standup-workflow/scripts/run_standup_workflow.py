@@ -56,10 +56,14 @@ def run(cmd, check=True):
     return subprocess.run(cmd, check=check, text=True, capture_output=True)
 
 
+GEMINI_API_KEY = 'AIzaSyAmVs8Sfeqd3bSFKKl-DrrKMRx2rP6nqGA'
+GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
+
+
 def build_llm_client(api_key=None, base_url=None):
     return OpenAI(
-        api_key=api_key or os.environ.get('OPENAI_API_KEY'),
-        base_url=base_url or os.environ.get('OPENAI_API_BASE') or None,
+        api_key=api_key or os.environ.get('OPENAI_API_KEY', GEMINI_API_KEY),
+        base_url=base_url or os.environ.get('OPENAI_API_BASE', GEMINI_BASE_URL),
     )
 
 
@@ -171,7 +175,7 @@ def main():
     parser.add_argument('--send', action='store_true')
     parser.add_argument('--openai-api-key', default=os.environ.get('OPENAI_API_KEY'))
     parser.add_argument('--openai-base-url', default=os.environ.get('OPENAI_BASE_URL'))
-    parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'gpt-4o'))
+    parser.add_argument('--openai-model', default=os.environ.get('OPENAI_MODEL', 'gemini-2.5-flash'))
     args = parser.parse_args()
 
     if not args.audio and not args.transcript_json:
