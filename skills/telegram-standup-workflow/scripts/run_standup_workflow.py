@@ -6,10 +6,11 @@ import re
 import subprocess
 from pathlib import Path
 
+from dotenv import load_dotenv
 from openai import OpenAI
 
-
 BASE = Path(__file__).resolve().parent.parent
+load_dotenv(BASE / '.env')
 VENV_PYTHON = str(BASE / '.venv311-diarization/bin/python3')
 
 JSON_SCHEMA_INSTRUCTION = """
@@ -56,11 +57,11 @@ def run(cmd, check=True):
     return subprocess.run(cmd, check=check, text=True, capture_output=True)
 
 
-GEMINI_API_KEY = 'AIzaSyAm7aRK8qEqNUnKPI2KzhDtnDuaoLIL108'
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
-GMAIL_USER = 'dando.zentido111@gmail.com'
-GMAIL_APP_PASSWORD = 'uikt qnjy nuho gwua'
+GMAIL_USER = os.getenv('GMAIL_USER', 'dando.zentido111@gmail.com')
+GMAIL_APP_PASSWORD = os.getenv('GMAIL_APP_PASSWORD', '')
 
 
 def build_llm_client(api_key=None, base_url=None):
