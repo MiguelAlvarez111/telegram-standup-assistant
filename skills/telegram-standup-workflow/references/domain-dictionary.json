@@ -2,6 +2,7 @@
   "terms": [
     "USAP", "RCMLinx", "MD Web", "MD Cloud", "MDClaim+", "Medaxion", "NASSAU", "Providers", "Transactional Log",
     "Test", "Producción", "Production", "NPI", "CB Code", "Pool", "Submitted", "Pending", "RCM Process", "History", "AOM",
+    "Lubbock", "GNYAS", "Medical City Denton", "Carolanne", "MD Capture", "CP Schedule", "Schedule", "Bug", "Waizant", "Billings Test",
 
     "Brayan", "Angie", "Jose", "Astrid", "Miguel",
     "Joanna", "Annie", "Chad", "Drew", "Samantha", "Connolly",
@@ -53,6 +54,17 @@
     "andy claude": "MD Cloud", "andy cloud": "MD Cloud",
     "transactional london": "Transactional Log", "transactional londan": "Transactional Log",
     "uci": "USAP",
-    "tes": "Test"
+    "tes": "Test",
+    "google": "Lubbock",
+    "ginas": "GNYAS", "yinas": "GNYAS",
+    "may cal city denton": "Medical City Denton",
+    "carolyn": "Carolanne",
+    "endicaptor": "MD Capture",
+    "cps cash of schedule": "CP Schedule",
+    "cv": "CB",
+    "box": "Bug",
+    "wyzons": "Waizant",
+    "binning": "Billings Test",
+    "iocp": "USAP"
   }
 }
