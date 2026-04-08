@@ -6,11 +6,18 @@ import re
 import subprocess
 from pathlib import Path
 
-from dotenv import load_dotenv
 from openai import OpenAI
 
 BASE = Path(__file__).resolve().parent.parent
-load_dotenv(BASE / '.env')
+
+env_path = BASE / '.env'
+if env_path.exists():
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ[key.strip()] = value.strip().strip('\'"')
 VENV_PYTHON = str(BASE / '.venv311-diarization/bin/python3')
 
 JSON_SCHEMA_INSTRUCTION = """

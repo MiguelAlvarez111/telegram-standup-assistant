@@ -1,6 +1,7 @@
 {
   "terms": [
     "USAP", "RCMLinx", "MD Web", "MD Cloud", "MDClaim+", "Medaxion", "NASSAU", "Providers", "Transactional Log",
+    "Test", "Producción", "Production", "NPI", "CB Code", "Pool", "Submitted", "Pending", "RCM Process", "History", "AOM",
 
     "Brayan", "Angie", "Jose", "Astrid", "Miguel",
     "Joanna", "Annie", "Chad", "Drew", "Samantha", "Connolly",
@@ -51,6 +52,7 @@
     "university linx cps": "RCMLinx", "university links": "RCMLinx", "100 links": "RCMLinx", "100links": "RCMLinx",
     "andy claude": "MD Cloud", "andy cloud": "MD Cloud",
     "transactional london": "Transactional Log", "transactional londan": "Transactional Log",
-    "uci": "USAP"
+    "uci": "USAP",
+    "tes": "Test"
   }
 }
